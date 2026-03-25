@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALPHA BLOCK CAPITAL | CRYPTO INFRASTRUCTURE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #020202; color: #ffffff; font-family: 'Inter', sans-serif; }
+        .alpha-blue { color: #00f2ff; } 
+        .border-blue { border: 1px solid #00f2ff; }
+        .glow-blue { text-shadow: 0 0 15px rgba(0, 242, 255, 0.6); }
+        .bg-card { background-color: #0a0a0a; border: 1px solid #1a1a1a; }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-10 bg-black">
+    <header class="flex flex-col items-center mb-12 text-center">
+        <div class="mb-6">
+            <img src="https://raw.githubusercontent.com/alphablockcapital/alphablockcapital.github.io/main/logo.jpg" alt="Alpha Block Logo" class="w-32 h-auto border-blue rounded-lg shadow-lg">
+        </div>
+        <h1 class="text-3xl md:text-5xl font-black tracking-tighter uppercase">
+            Alpha Block <span class="alpha-blue glow-blue">Capital</span>
+        </h1>
+        <p class="text-[10px] text-gray-500 mt-4 tracking-[0.4em] uppercase font-mono italic">
+            // SOLUTIONS FINANCIÈRES QUANTIQUES // 2026
+        </p>
+    </header>
+
+    <nav class="max-w-6xl mx-auto flex justify-end mb-10">
+        <button onclick="alert('Connexion Web3 sécurisée...')" class="border-blue alpha-blue px-8 py-3 text-xs font-bold uppercase hover:bg-cyan-500 hover:text-black transition duration-300 rounded-full shadow-[0_0_20px_rgba(0,242,255,0.2)]">
+            Connecter Wallet
+        </button>
+    </nav>
+
+    <main class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <div class="lg:col-span-2 bg-card p-3 rounded-md h-[500px] shadow-2xl">
+            <div id="tradingview_alpha" style="height:100%;width:100%;"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+            <script type="text/javascript">
+                new TradingView.widget({
+                    "autosize": true, "symbol": "BINANCE:BTCUSDT", "interval": "D",
+                    "timezone": "Etc/UTC", "theme": "dark", "style": "1",
+                    "locale": "fr", "container_id": "tradingview_alpha"
+                });
+            </script>
+        </div>
+
+        <div class="space-y-8">
+            <div class="bg-card p-8 border-t-4 border-cyan-500 rounded-b-md">
+                <h3 class="alpha-blue text-xs font-bold mb-6 uppercase tracking-widest">Dashboard Investisseur</h3>
+                <div class="text-3xl font-mono text-white mb-2">0.000 ABC</div>
+                <div class="text-[10px] text-gray-400 uppercase">Balance Actuelle</div>
+                <p class="text-[9px] text-gray-600 mt-6 italic border-t border-gray-900 pt-4 font-mono italic">
+                    [SYSTÈME : EN ATTENTE DE SYNCHRONISATION WALLET]
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="mt-24 text-center border-t border-gray-900 pt-12 text-[9px] text-gray-700 uppercase tracking-[0.3em]">
+        © 2026 Alpha Block Capital - Dirigé par Jean JLK
+    </footer>
+</body>
+</html>
