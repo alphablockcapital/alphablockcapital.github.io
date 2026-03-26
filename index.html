@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ALPHA BLOCK CAPITAL | TRIPLE VIEW NEXUS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&display=swap');
+        body { background: #020202; color: #fff; font-family: 'Space Grotesk', sans-serif; overflow-x: hidden; touch-action: manipulation; }
+        .cyan-glow { text-shadow: 0 0 20px rgba(0, 242, 255, 0.6); color: #00f2ff; }
+        .gold-glow { text-shadow: 0 0 15px rgba(255, 215, 0, 0.6); border: 1px solid #ffd700; color: #ffd700; }
+        .vanta-card { background: #080808; border: 1px solid #1a1a1a; border-radius: 12px; }
+        #game-canvas { background: #000; border: 2px solid #1a1a1a; width: 100%; max-width: 400px; border-radius: 8px; }
+        .touch-btn { width: 70px; height: 70px; background: rgba(255,255,255,0.03); border: 2px solid #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; transition: 0.1s; user-select: none; }
+        .btn-alpha { padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; font-size: 10px; }
+        .chart-container { height: 250px; }
+    </style>
+</head>
+<body class="p-4 flex flex-col items-center">
+
+    <header class="text-center mb-6">
+        <img src="logo.jpg" alt="Alpha Logo" class="w-24 mx-auto mb-4 rounded-lg shadow-[0_0_30px_rgba(0,242,255,0.2)]">
+        <h1 class="text-2xl font-bold cyan-glow uppercase tracking-tighter">Alpha Block Capital</h1>
+        <div id="user-section" class="mt-4">
+            <button onclick="login()" id="login-btn" class="btn-alpha gold-glow">Connect Alpha Account</button>
+            <p id="user-welcome" class="hidden text-cyan-400 text-[10px] mt-2 italic font-bold tracking-[0.3em] uppercase"></p>
+        </div>
+    </header>
+
+    <div class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div class="vanta-card p-1 chart-container" id="chart_btc"></div>
+        <div class="vanta-card p-1 chart-container" id="chart_eth"></div>
+        <div class="vanta-card p-1 chart-container" id="chart_sol"></div>
+    </div>
+
+    <div class="vanta-card p-6 flex flex-col items-center w-full max-w-md">
+        <h2 class="gold-glow mb-4 text-[10px] tracking-[0.4em] uppercase italic">187 Frequency Arcade</h2>
+        <div class="flex gap-10 mb-4 font-mono text-xs">
+            <div class="text-red-500 font-bold">HP: <span id="hp">100</span>%</div>
+            <div class="text-green-400 font-bold">SCORE: <span id="score">0</span></div>
+        </div>
+        <canvas id="game-canvas"></canvas>
+        <div class="flex gap-8 mt-6">
+            <div class="touch-btn" id="l">◀</div>
+            <div class="touch-btn" id="s" style="border-color: #ffd700;">🔥</div>
+            <div class="touch-btn" id="r">▶</div>
+        </div>
+    </div>
+
+    <footer class="text-[7px] text-gray-800 tracking-[0.5em] uppercase mt-10 pb-10">
+        © 2026 Quatre50 | Jean JLK & Math (ki2l)
+    </footer>
+
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script>
+        // LOGIN SYSTEM
+        function login() {
+            let name = prompt("Opérateur (Jean ou Math):");
+            if (name) { localStorage.setItem('alpha_user', name); updateUI(name); }
+        }
+        function updateUI(name) {
+            document.getElementById('login-btn').classList.add('hidden');
+            const welcome = document.getElementById('user-welcome');
+            welcome.innerText = "OP CONNECTÉ : " + name.toUpperCase();
+            welcome.classList.remove('hidden');
+        }
+        window.onload = () => { if (localStorage.getItem('alpha_user')) updateUI(localStorage.getItem('alpha_user')); };
+
+        // TRIPLE CHART INIT
+        const config = (sym, id) => new TradingView.widget({"autosize": true, "symbol": sym, "interval": "H", "theme": "dark", "style": "1", "locale": "fr", "hide_top_toolbar": true, "container_id": id});
+        config("BINANCE:BTCUSDT", "chart_btc");
+        config("BINANCE:ETHUSDT", "chart_eth");
+        config("BINANCE:SOLUSDT", "chart_sol");
+
+        // ENGINE JEU 187
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 400; canvas.height = 500;
+        let player = {x: 180, y: 430, w: 40, h: 40, hp: 100, score: 0};
+        let bullets = [], enemies = [], shake = 0, moveL = false, moveR = false;
+
+        const btnL = document.getElementById('l'), btnR = document.getElementById('r'), btnS = document.getElementById('s');
+        btnL.onpointerdown = (e) => { e.preventDefault(); moveL = true; };
+        btnL.onpointerup = () => moveL = false;
+        btnR.onpointerdown = (e) => { e.preventDefault(); moveR = true; };
+        btnR.onpointerup = () => moveR = false;
+        btnS.onpointerdown = (e) => { e.preventDefault(); shoot(); };
+
+        function shoot() { bullets.push({x: player.x + 18, y: player.y, s: 12}); }
+        function spawn() { enemies.push({x: Math.random()*360, y: -40, s: 4+(player.score/5000), w: 35, h: 35}); }
+        setInterval(spawn, 800);
+
+        function draw() {
+            ctx.save();
+            if (shake > 0) { ctx.translate(Math.random()*shake-shake/2, Math.random()*shake-shake/2); shake -= 0.7; }
+            ctx.fillStyle = '#000'; ctx.fillRect(0,0,400,500);
+            if(moveL && player.x > 0) player.x -= 10;
+            if(moveR && player.x < 360) player.x += 10;
+            ctx.shadowBlur = 20; ctx.shadowColor = '#00f2ff';
+            ctx.fillStyle = '#00f2ff'; ctx.fillRect(player.x, player.y, 40, 40);
+            ctx.shadowBlur = 10; ctx.shadowColor = '#ffd700';
+            bullets.forEach((b, i) => {
+                b.y -= b.s; ctx.fillStyle = '#ffd700'; ctx.fillRect(b.x, b.y, 4, 15);
+                if(b.y < 0) bullets.splice(i, 1);
+            });
+            ctx.shadowBlur = 15; ctx.shadowColor = '#ff4444';
+            enemies.forEach((e, i) => {
+                e.y += e.s; ctx.fillStyle = '#ff4444'; ctx.fillRect(e.x, e.y, 35, 35);
+                bullets.forEach((b, bi) => {
+                    if(b.x < e.x+35 && b.x+4 > e.x && b.y < e.y+35) {
+                        enemies.splice(i,1); bullets.splice(bi,1); player.score+=187; shake=8;
+                        document.getElementById('score').innerText = player.score;
+                    }
+                });
+                if(e.x < player.x+40 && e.x+35 > player.x && e.y < player.y+40 && e.y+35 > player.y) {
+                    enemies.splice(i,1); player.hp-=20; shake=15;
+                    document.getElementById('hp').innerText = player.hp;
+                    if(player.hp <= 0) { player.hp=100; player.score=0; document.getElementById('score').innerText=0; }
+                }
+                if(e.y > 500) enemies.splice(i,1);
+            });
+            ctx.restore();
+            requestAnimationFrame(draw);
+        }
+        draw();
+    </script>
+</body>
+</html>
