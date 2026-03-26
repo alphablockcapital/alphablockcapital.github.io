@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ALPHA BREACH | 187 NEXUS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&family=JetBrains+Mono:wght@400;700&display=swap');
+        body { background: #020202; color: #fff; font-family: 'Space Grotesk', sans-serif; overflow: hidden; touch-action: none; }
+        .cyan-glow { text-shadow: 0 0 20px rgba(0, 242, 255, 0.6); color: #00f2ff; }
+        .gold-glow { text-shadow: 0 0 15px rgba(255, 215, 0, 0.6); color: #ffd700; border: 1px solid #ffd700; }
+        .vanta-card { background: #080808; border: 1px solid #1a1a1a; border-radius: 12px; }
+        #game-canvas { background: #000; border: 1px solid #00f2ff33; width: 100%; max-width: 380px; border-radius: 4px; }
+        .touch-btn { width: 70px; height: 70px; background: rgba(0, 242, 255, 0.05); border: 1px solid #00f2ff33; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; user-select: none; }
+    </style>
+</head>
+<body class="p-4 flex flex-col items-center">
+
+    <header class="text-center mb-4">
+        <h1 class="text-xl font-bold cyan-glow uppercase tracking-[0.3em]">Alpha Breach Terminal</h1>
+        <p class="text-[8px] text-cyan-500 opacity-50 font-mono">ENCRYPTED CONNECTION ESTABLISHED...</p>
+    </header>
+
+    <div class="vanta-card p-4 flex flex-col items-center w-full max-w-sm">
+        <div class="flex justify-between w-full mb-4 px-2 font-mono text-[10px]">
+            <div class="text-red-500 font-bold">HEALTH: <span id="lives">❤️❤️❤️</span></div>
+            <div class="text-green-400 font-bold">STOLEN_DATA: <span id="score">0</span></div>
+        </div>
+        
+        <canvas id="game-canvas"></canvas>
+        
+        <div class="flex gap-10 mt-6">
+            <div id="l" class="touch-btn">◀</div>
+            <div id="s" class="touch-btn" style="border-color: #ffd700; background: rgba(255, 215, 0, 0.05);">⚡</div>
+            <div id="r" class="touch-btn">▶</div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 400; canvas.height = 500;
+        
+        let player = {x: 180, y: 430, w: 40, h: 40, lives: 3, score: 0, invul: 0};
+        let bullets = [], enemies = [], shake = 0, moveL = false, moveR = false;
+        let isGameOver = false;
+        let breachFlash = 0;
+
+        const btnL = document.getElementById('l'), btnR = document.getElementById('r'), btnS = document.getElementById('s');
+        btnL.onpointerdown = (e) => { e.preventDefault(); moveL = true; };
+        btnL.onpointerup = () => moveL = false;
+        btnR.onpointerdown = (e) => { e.preventDefault(); moveR = true; };
+        btnR.onpointerup = () => moveR = false;
+        btnS.onpointerdown = (e) => { e.preventDefault(); if(isGameOver) reset(); else shoot(); };
+
+        function shoot() { bullets.push({x: player.x + 18, y: player.y, s: 15}); }
+        function spawn() { 
+            if(!isGameOver) {
+                let ids = ["0x450", "USR_88", "WL_77", "BTC_99", "Q50_X"];
+                enemies.push({
+                    x: Math.random()*340, 
+                    y: -40, 
+                    s: 3 + (player.score/10000), 
+                    w: 40, 
+                    h: 25, 
+                    label: ids[Math.floor(Math.random()*ids.length)]
+                }); 
+            }
+        }
+        setInterval(spawn, 1000);
+
+        function reset() {
+            player = {x: 180, y: 430, w: 40, h: 40, lives: 3, score: 0, invul: 0};
+            bullets = []; enemies = []; isGameOver = false;
+            document.getElementById('score').innerText = 0;
+            document.getElementById('lives').innerText = "❤️❤️❤️";
+        }
+
+        function draw() {
+            ctx.save();
+            if (shake > 0) { ctx.translate(Math.random()*shake-shake/2, Math.random()*shake-shake/2); shake -= 0.8; }
+            ctx.fillStyle = '#010101'; ctx.fillRect(0,0,400,500);
+
+            // GRID BACKGROUND EFFECT
+            ctx.strokeStyle = '#00f2ff05';
+            for(let i=0; i<400; i+=20) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,500); ctx.stroke(); }
+
+            if(isGameOver) {
+                ctx.fillStyle = "#fff"; ctx.font = "bold 20px Space Grotesk"; ctx.textAlign = "center";
+                ctx.fillText("TERMINAL LOCKED", 200, 220);
+                ctx.fillStyle = "#ffd700"; ctx.font = "12px JetBrains Mono";
+                ctx.fillText("TAP ⚡ TO REBOOT", 200, 260);
+            } else {
+                if(moveL && player.x > 0) player.x -= 10;
+                if(moveR && player.x < 360) player.x += 10;
+                if(player.invul > 0) player.invul--;
+
+                // PLAYER
+                if(player.invul % 4 < 2) {
+                    ctx.shadowBlur = 15; ctx.shadowColor = '#00f2ff';
+                    ctx.fillStyle = '#00f2ff';
+                    ctx.fillRect(player.x, player.y, 40, 40);
+                    ctx.fillStyle = '#000'; ctx.fillRect(player.x+10, player.y+10, 20, 5);
+                }
+
+                bullets.forEach((b, i) => {
+                    b.y -= b.s; ctx.fillStyle = '#ffd700'; ctx.fillRect(b.x, b.y, 4, 15);
+                    if(b.y < 0) bullets.splice(i, 1);
+                });
+
+                enemies.forEach((e, i) => {
+                    e.y += e.s;
+                    ctx.shadowBlur = 0;
+                    ctx.strokeStyle = '#ff4444';
+                    ctx.strokeRect(e.x, e.y, 60, 25);
+                    ctx.fillStyle = '#ff4444';
+                    ctx.font = "10px JetBrains Mono";
+                    ctx.fillText(e.label, e.x + 5, e.y + 15);
+                    
+                    bullets.forEach((b, bi) => {
+                        if(b.x < e.x+60 && b.x+4 > e.x && b.y < e.y+25) {
+                            enemies.splice(i,1); bullets.splice(bi,1); 
+                            player.score += 187; shake = 5; breachFlash = 10;
+                            document.getElementById('score').innerText = player.score;
+                        }
+                    });
+
+                    if( (e.x < player.x+40 && e.x+60 > player.x && e.y < player.y+40 && e.y+25 > player.y) || e.y > 500 ) {
+                        if(player.invul <= 0) { player.lives--; player.invul = 60; shake = 15; updateHearts(); }
+                        enemies.splice(i,1);
+                    }
+                });
+
+                if(breachFlash > 0) {
+                    ctx.fillStyle = "rgba(0, 242, 255, 0.1)";
+                    ctx.fillRect(0,0,400,500);
+                    ctx.fillStyle = "#00f2ff"; ctx.font = "10px Space Grotesk";
+                    ctx.fillText("BREACHED!", player.x, player.y - 10);
+                    breachFlash--;
+                }
+            }
+            ctx.restore();
+            requestAnimationFrame(draw);
+        }
+
+        function updateHearts() {
+            let h = ""; for(let k=0; k<player.lives; k++) h += "❤️";
+            document.getElementById('lives').innerText = h || "💀";
+            if(player.lives <= 0) isGameOver = true;
+        }
+        draw();
+    </script>
+</body>
+</html>
